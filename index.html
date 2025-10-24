@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <!-- Chosen Palette: Calm Harmony (Light Gray, White, Deep Green Accent) -->
+    <!-- Application Structure Plan: A modular, sidebar-navigated SPA. This structure mirrors a logical training curriculum, guiding the user from 'Introduction' to 'Implementation' and finally to the key focus areas: 'Maintenance' and 'Trademarks'. This is more intuitive for learning than a single dense report. Interactivity (tabs, toggles) is used within modules to break down complex information (like requirements and non-conformities) into digestible pieces. -->
+    <!-- Visualization & Content Choices:
+        - Módulo 2 (Processo): HTML/Tailwind "step-flow" diagram -> Goal: Organize -> Method: Styled flexbox cards -> Interaction: None (static visual) -> Justification: Clear, linear path for training, avoids Mermaid/SVG.
+        - Módulo 3 (Requisitos): JS-powered tabs -> Goal: Organize -> Method: JS toggle of content blocks -> Interaction: Click tabs -> Justification: Manages high-density info (FSC-STD-40-004) without overwhelming the user.
+        - Módulo 4 (Sistemas): Horizontal Bar Chart -> Goal: Compare -> Viz: Chart.js Canvas -> Interaction: Tooltip on hover -> Justification: Visually compares Complexity vs. Flexibility of the 3 systems.
+        - Módulo 5 (Manutenção): JS-powered toggles -> Goal: Inform/Organize -> Method: JS toggle for NC actions -> Interaction: Click buttons (NC Menor/Maior) -> Justification: Focuses user on the *action plan* for each NC type, a key training goal.
+        - Módulo 6 (Marcas): HTML/CSS mockups -> Goal: Inform -> Method: Styled HTML/Tailwind divs -> Interaction: None (static visual) -> Justification: Visually demonstrates "On-product" vs. "Off-product" rules, which is clearer than text alone.
+        -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia FSC® CoC para Gráficas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-link.active {
+            background-color: #047857;
+            color: white;
+            border-left: 4px solid #facc15;
+        }
+        .nav-link:hover:not(.active) {
+            background-color: #e5e7eb;
+        }
+        .module-section {
+            display: none;
+        }
+        .module-section.active {
+            display: block;
+        }
+        .tab-btn.active {
+            background-color: #059669;
+            color: white;
+        }
+        .fake-fsc-label {
+            border: 2px dashed #059669;
+            background: #f0fdf4;
+            padding: 1rem;
+            text-align: center;
+        }
+        .fsc-tree-icon {
+            font-size: 2rem;
+            line-height: 1;
+            font-weight: bold;
+            color: #059669;
+        }
+        .fsc-check-icon {
+            font-size: 1.2rem;
+            color: #059669;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <button id="mobile-menu-btn" class="md:hidden fixed top-4 left-4 z-30 p-2 bg-white rounded-md shadow-lg">
+        <span class="block w-6 h-0.5 bg-gray-700 mb-1"></span>
+        <span class="block w-6 h-0.5 bg-gray-700 mb-1"></span>
+        <span class="block w-6 h-0.5 bg-gray-700"></span>
+    </button>
+
+    <aside id="sidebar" class="w-64 bg-white shadow-lg p-4 flex-shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-20 overflow-y-auto">
+        <h1 class="text-2xl font-bold text-green-800 mb-6 flex items-center">
+            <span class="fsc-tree-icon mr-2">🌳</span>
+            Guia FSC® CoC
+        </h1>
+        <nav class="space-y-2">
+            <a href="#" class="nav-link module-nav active" data-target="module-1">
+                <span class="text-lg">➔</span> Introdução ao FSC®
+            </a>
+            <a href="#" class="nav-link module-nav" data-target="module-2">
+                <span class="text-lg">➔</span> Processo de Certificação
+            </a>
+            <a href="#" class="nav-link module-nav" data-target="module-3">
+                <span class="text-lg">➔</span> Requisitos Chave (40-004)
+            </a>
+            <a href="#" class="nav-link module-nav" data-target="module-4">
+                <span class="text-lg">➔</span> Sistemas de Controle
+            </a>
+            <a href="#" class="nav-link module-nav font-bold" data-target="module-5">
+                <span class="text-lg">➔</span> Manutenção (Foco)
+            </a>
+            <a href="#" class="nav-link module-nav font-bold" data-target="module-6">
+                <span class="text-lg">➔</span> Uso das Marcas (Foco)
+            </a>
+        </nav>
+    </aside>
+
+    <div id="overlay" class="md:hidden fixed inset-0 bg-black opacity-50 z-10 hidden"></div>
+
+    <main class="flex-1 overflow-y-auto p-6 md:p-10">
+        
+        <section id="module-1" class="module-section active">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Módulo 1: Introdução ao FSC® e Cadeia de Custódia</h2>
+            <p class="text-lg text-gray-700 mb-6">
+                Bem-vindo ao guia de treinamento em Cadeia de Custódia (CoC) do FSC®, focado na indústria gráfica. Esta certificação garante que os materiais de origem florestal (como o papel) utilizados em seus produtos impressos provêm de fontes gerenciadas de forma responsável e controlada.
+            </p>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-green-700 mb-3">O que é o FSC®?</h3>
+                    <p class="text-gray-600">O Forest Stewardship Council (FSC®) é uma organização global, não governamental, dedicada a promover o manejo florestal responsável. Ele define padrões para garantir que os produtos florestais sejam obtidos de maneira ambientalmente correta, socialmente benéfica e economicamente viável.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-green-700 mb-3">O que é a Cadeia de Custódia (CoC)?</h3>
+                    <p class="text-gray-600">A CoC é o rastreamento do material certificado FSC desde a floresta até o produto final (ex: seu material impresso). Para a indústria gráfica, isso significa ser capaz de comprovar que o papel certificado que você comprou é o mesmo que está sendo usado no produto final que leva o rótulo FSC.</p>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Benefícios para a sua Gráfica</h3>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <span class="text-2xl mr-3">📈</span>
+                        <div>
+                            <h4 class="font-semibold text-gray-700">Acesso a Mercados</h4>
+                            <p class="text-gray-600">Muitos clientes, especialmente grandes corporações e governos, exigem a certificação FSC para seus materiais impressos.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-2xl mr-3">🤝</span>
+                        <div>
+                            <h4 class="font-semibold text-gray-700">Reputação e Credibilidade</h4>
+                            <p class="text-gray-600">Demonstra o compromisso da sua gráfica com a sustentabilidade, diferenciando-a da concorrência.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-2xl mr-3">🌍</span>
+                        <div>
+                            <h4 class="font-semibold text-gray-700">Responsabilidade Ambiental</h4>
+                            <p class="text-gray-600">Contribui diretamente para a proteção das florestas, combatendo o desmatamento e a exploração ilegal.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="module-2" class="module-section">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Módulo 2: O Processo de Certificação (Foco APCER)</h2>
+            <p class="text-lg text-gray-700 mb-8">
+                Obter a certificação de Cadeia de Custódia envolve um processo estruturado. A APCER é um organismo de certificação acreditado pelo FSC para realizar auditorias e conceder o certificado. O papel dela é verificar independentemente se sua gráfica cumpre todos os requisitos da norma FSC.
+            </p>
+
+            <div class="flex flex-col space-y-4">
+                <div class="flex items-center w-full">
+                    <div class="bg-green-600 text-white rounded-full h-12 w-12 flex items-center justify-center font-bold text-xl flex-shrink-0">1</div>
+                    <div class="ml-4 p-4 bg-white rounded-lg shadow-md flex-1">
+                        <h3 class="font-semibold text-gray-800">Contato e Proposta</h3>
+                        <p class="text-gray-600">Você entra em contato com a APCER solicitando uma proposta para a certificação FSC CoC.</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center w-full">
+                    <div class="bg-green-600 text-white rounded-full h-12 w-12 flex items-center justify-center font-bold text-xl flex-shrink-0">2</div>
+                    <div class="ml-4 p-4 bg-white rounded-lg shadow-md flex-1">
+                        <h3 class="font-semibold text-gray-800">Implementação</h3>
+                        <p class="text-gray-600">Sua gráfica implementa os requisitos da norma FSC-STD-40-004. Isso inclui definir procedimentos, treinar equipe e configurar o sistema (ex: ERP) para rastrear material.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center w-full">
+                    <div class="bg-green-600 text-white rounded-full h-12 w-12 flex items-center justify-center font-bold text-xl flex-shrink-0">3</div>
+                    <div class="ml-4 p-4 bg-white rounded-lg shadow-md flex-1">
+                        <h3 class="font-semibold text-gray-800">Auditoria Inicial (APCER)</h3>
+                        <p class="text-gray-600">Um auditor da APCER visita sua gráfica para verificar se todos os requisitos estão sendo atendidos na prática.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center w-full">
+                    <div class="bg-green-600 text-white rounded-full h-12 w-12 flex items-center justify-center font-bold text-xl flex-shrink-0">4</div>
+                    <div class="ml-4 p-4 bg-white rounded-lg shadow-md flex-1">
+                        <h3 class="font-semibold text-gray-800">Tratamento de NCs</h3>
+                        <p class="text-gray-600">Se o auditor encontrar "Não-Conformidades" (NCs), sua empresa terá um prazo para corrigi-las.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center w-full">
+                    <div class="bg-green-500 text-white rounded-full h-12 w-12 flex items-center justify-center font-bold text-xl flex-shrink-0">✔</div>
+                    <div class="ml-4 p-4 bg-green-50 rounded-lg shadow-inner flex-1">
+                        <h3 class="font-semibold text-green-800">Concessão do Certificado</h3>
+                        <p class="text-gray-700">Após corrigir as NCs, a APCER emite seu certificado FSC CoC, válido por 5 anos.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="module-3" class="module-section">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Módulo 3: Requisitos Chave (FSC-STD-40-004)</h2>
+            <p class="text-lg text-gray-700 mb-6">
+                A norma FSC-STD-40-004 é o coração da CoC. Para a indústria gráfica, ela se concentra em como você compra, controla, processa e vende papel e outros substratos. Explore os pilares principais abaixo.
+            </p>
+
+            <div class="mb-4 border-b border-gray-300">
+                <nav class="flex space-x-2" id="module-3-tabs">
+                    <button class="tab-btn module-3-tab active px-4 py-2 font-semibold rounded-t-lg" data-target="m3-compras">1. Compras e Fontes</button>
+                    <button class="tab-btn module-3-tab px-4 py-2 font-semibold rounded-t-lg" data-target="m3-controle">2. Controle e Registros</button>
+                    <button class="tab-btn module-3-tab px-4 py-2 font-semibold rounded-t-lg" data-target="m3-vendas">3. Vendas e Faturas</button>
+                    <button class="tab-btn module-3-tab px-4 py-2 font-semibold rounded-t-lg" data-target="m3-trabalho">4. Requisitos de Trabalho</button>
+                </nav>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div id="m3-compras" class="module-3-content active">
+                    <h3 class="text-xl font-semibold text-green-700 mb-3">1. Compra de Materiais e Segregação</h3>
+                    <p class="mb-2">Você deve garantir que todo papel comprado como "certificado" venha de um fornecedor também certificado FSC.</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        <li><strong>Verificação:</strong> Sempre verifique a validade do certificado do fornecedor (no site info.fsc.org).</li>
+                        <li><strong>Faturas de Compra:</strong> A fatura deve conter o código CoC do fornecedor e a declaração FSC exata do material (ex: "FSC Misto 70%").</li>
+                        <li><strong>Segregação:</strong> Ao receber, o papel certificado deve ser claramente identificado (ex: etiqueta verde) e armazenado separadamente (ou de forma controlada) do papel não-certificado para evitar mistura.</li>
+                    </ul>
+                </div>
+
+                <div id="m3-controle" class="module-3-content hidden">
+                    <h3 class="text-xl font-semibold text-green-700 mb-3">2. Controle de Produção e Balanço</h3>
+                    <p class="mb-2">Você precisa rastrear o papel certificado durante todo o processo de impressão.</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        <li><strong>Ordem de Serviço (OS):</strong> A OS deve indicar claramente que o trabalho é FSC e qual tipo de material será usado.</li>
+                        <li><strong>Registros:</strong> Manter registros de quanto papel certificado entrou (compra) e quanto foi usado em trabalhos FSC (produção).</li>
+                        <li><strong>Balanço de Materiais:</strong> Periodicamente, você deve ser capaz de provar que não vendeu mais produtos FSC do que comprou de material certificado (respeitando o sistema de controle usado).</li>
+                    </ul>
+                </div>
+
+                <div id="m3-vendas" class="module-3-content hidden">
+                    <h3 class="text-xl font-semibold text-green-700 mb-3">3. Vendas e Declarações em Fatura</h3>
+                    <p class="mb-2">Para que seu cliente possa, por sua vez, usar a marca FSC, sua fatura de venda é o documento legal de transferência.</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        <li><strong>Declaração FSC:</strong> A fatura de venda de um produto certificado DEVE conter a declaração FSC exata (ex: "FSC Reciclado 100%").</li>
+                        <li><strong>Código CoC:</strong> Sua fatura DEVE conter o seu próprio código de certificação CoC (ex: APCER-COC-XXXXXX).</li>
+                        <li><strong>Clareza:</strong> Se a fatura contiver itens certificados e não-certificados, deve ser perfeitamente claro quais são quais.</li>
+                    </ul>
+                </div>
+
+                <div id="m3-trabalho" class="module-3-content hidden">
+                    <h3 class="text-xl font-semibold text-green-700 mb-3">4. Requisitos Fundamentais de Trabalho da FSC</h3>
+                    <p class="mb-2">O FSC exige que todas as empresas certificadas demonstrem conformidade com os princípios fundamentais de trabalho da OIT (Organização Internacional do Trabalho).</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        <li>Não utilização de trabalho infantil.</li>
+                        <li>Abolição de todas as formas de trabalho forçado ou obrigatório.</li>
+                        <li>Eliminação da discriminação em relação ao emprego e à ocupação.</li>
+                        <li>Respeito à liberdade de associação e ao direito à negociação coletiva.</li>
+                        <li>Saúde e Segurança no trabalho.</li>
+                    </ul>
+                    <p class="mt-3 text-gray-600">Sua gráfica deve ter uma autoavaliação e políticas que demonstrem o cumprimento desses requisitos.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="module-4" class="module-section">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Módulo 4: Sistemas de Controle CoC</h2>
+            <p class="text-lg text-gray-700 mb-6">
+                O FSC permite três sistemas para controlar os materiais. A escolha depende do seu processo produtivo na gráfica. Você deve definir qual sistema usa no seu procedimento.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-green-600">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">1. Sistema de Transferência</h3>
+                    <p class="text-gray-600 mb-3">O material é mantido segregado fisicamente durante todo o processo. O que entra (ex: FSC Misto) é exatamente o que sai (FSC Misto).</p>
+                    <h4 class="font-semibold text-green-700">Quando usar na Gráfica:</h4>
+                    <p class="text-gray-600">Ideal para trabalhos simples onde você usa um lote de papel específico para um cliente, sem misturar com outros papéis ou trabalhos.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-yellow-500">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">2. Sistema de Porcentagem</h3>
+                    <p class="text-gray-600 mb-3">Usado quando há mistura de material certificado (ex: FSC Misto) com material não-certificado (mas controlado). A declaração de saída é baseada na proporção de entrada.</p>
+                    <h4 class="font-semibold text-green-700">Quando usar na Gráfica:</h4>
+                    <p class="text-gray-600">Raro em gráficas, mais comum na produção de papel. A maioria das gráficas usa Transferência ou Crédito.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-600">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">3. Sistema de Crédito</h3>
+                    <p class="text-gray-600 mb-3">Permite misturar material certificado e não-certificado (controlado). Você acumula "créditos" de material certificado que entra, e pode "gastar" esses créditos nos trabalhos de saída.</p>
+                    <h4 class="font-semibold text-green-700">Quando usar na Gráfica:</h4>
+                    <p class="text-gray-600">Muito útil se você armazena o mesmo tipo de papel (ex: Couché 150g) de fontes certificadas e não-certificadas juntas. Você controla o *volume* no estoque.</p>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4 text-center">Comparativo dos Sistemas</h3>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <p class="text-center text-gray-600 mb-4">Visualizando a relação entre a complexidade de controle e a flexibilidade de produção para cada sistema.</p>
+                <div class="chart-container">
+                    <canvas id="sistemasChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="module-5" class="module-section">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Módulo 5: Manutenção da Certificação (Foco)</h2>
+            <p class="text-lg text-gray-700 mb-6">
+                Obter o certificado é apenas o começo. A parte mais importante é a manutenção diária e a preparação para as auditorias anuais. É aqui que o seu compromisso contínuo é testado.
+            </p>
+
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h3 class="text-xl font-semibold text-green-700 mb-3">Auditorias Anuais de Monitoramento (APCER)</h3>
+                <p class="text-gray-600">
+                    Todos os anos, um auditor da APCER visitará sua gráfica para garantir que você continua cumprindo os requisitos.
+                </p>
+                <p class="text-gray-600 mt-2"><strong>O que o auditor focará:</strong></p>
+                <ul class="list-disc list-inside space-y-1 text-gray-600 mt-2">
+                    <li><strong>Balanço de Materiais:</strong> Seu "Balanço Volumétrico" está fechando? (Você não vendeu mais FSC do que comprou?).</li>
+                    <li><strong>Registros de Produção:</strong> As OSs estão corretas? O material foi rastreado?</li>
+                    <li><strong>Faturas de Venda e Compra:</strong> As declarações FSC estão corretas? Os códigos CoC estão presentes?</li>
+                    <li><strong>Uso das Marcas:</strong> Você usou os rótulos FSC? Eles foram aprovados pela APCER? (Veja Módulo 6).</li>
+                    <li><strong>Requisitos de Trabalho:</strong> Sua autoavaliação está atualizada?</li>
+                    <li><strong>NCs Anteriores:</strong> As correções das não-conformidades do ano anterior foram eficazes?</li>
+                </ul>
+            </div>
+
+            <h3 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Tratando Não-Conformidades (NCs)</h3>
+            <p class="text-lg text-gray-700 mb-6">
+                É comum o auditor encontrar NCs. O importante é como você reage. Elas são oportunidades de melhoria.
+            </p>
+            
+            <div class="flex space-x-4 mb-4">
+                <button id="btn-nc-menor" class="nc-toggle-btn flex-1 bg-yellow-100 text-yellow-800 p-4 rounded-lg shadow-sm border-b-4 border-yellow-500 font-semibold text-lg hover:bg-yellow-200 transition">Clique: O que é uma NC Menor?</button>
+                <button id="btn-nc-maior" class="nc-toggle-btn flex-1 bg-red-100 text-red-800 p-4 rounded-lg shadow-sm border-b-4 border-red-500 font-semibold text-lg hover:bg-red-200 transition">Clique: O que é uma NC Maior?</button>
+            </div>
+
+            <div id="desc-nc-menor" class="bg-white p-6 rounded-lg shadow-md hidden">
+                <h4 class="text-xl font-semibold text-yellow-700 mb-2">Não-Conformidade Menor</h4>
+                <p class="text-gray-600 mb-3">Uma falha pontual ou lapso no sistema que não compromete a integridade do material FSC.</p>
+                <p class="text-gray-600 mb-2"><strong>Exemplo na Gráfica:</strong> Esquecer de colocar a declaração FSC em *uma* fatura de venda de um trabalho certificado.</p>
+                <h5 class="font-semibold text-gray-700 mt-4">Plano de Ação (Obrigatório):</h5>
+                <ul class="list-decimal list-inside text-gray-600 space-y-1 pl-4">
+                    <li><strong>Correção:</strong> Corrigir o erro imediato (ex: reemitir a fatura para o cliente).</li>
+                    <li><strong>Análise de Causa Raiz:</strong> Por que aconteceu? (Ex: O faturista não foi treinado).</li>
+                    <li><strong>Ação Corretiva:</strong> O que fazer para não acontecer de novo? (Ex: Realizar treinamento com o faturista e criar um checklist de faturamento).</li>
+                    <li><strong>Prazo:</strong> Você tem até 12 meses (próxima auditoria) para implementar a ação corretiva.</li>
+                </ul>
+            </div>
+
+            <div id="desc-nc-maior" class="bg-white p-6 rounded-lg shadow-md hidden">
+                <h4 class="text-xl font-semibold text-red-700 mb-2">Não-Conformidade Maior</h4>
+                <p class="text-gray-600 mb-3">Uma falha grave ou sistêmica que *compromete* a integridade do material FSC, ou a falha em corrigir NCs menores.</p>
+                <p class="text-gray-600 mb-2"><strong>Exemplo na Gráfica:</strong> Não ter um balanço de materiais, ou vender muito mais produtos "FSC Misto" do que o volume de papel "FSC Misto" comprado.</p>
+                <h5 class="font-semibold text-gray-700 mt-4">Plano de Ação (Urgente):</h5>
+                <ul class="list-decimal list-inside text-gray-600 space-y-1 pl-4">
+                    <li><strong>Correção e Causa Raiz:</strong> Imediatas.</li>
+                    <li><strong>Ação Corretiva:</strong> Deve ser implementada rapidamente.</li>
+                    <li><strong>Prazo:</strong> Você tem, tipicamente, 3 meses para corrigir. A falha em corrigir uma NC Maior pode levar à <strong>suspensão do certificado</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md mt-6">
+                <h3 class="text-xl font-semibold text-green-700 mb-3">Renovação do Certificado</h3>
+                <p class="text-gray-600">
+                    Seu certificado é válido por 5 anos. No quinto ano, a APCER realizará uma auditoria de "Renovação", que é mais detalhada, similar à auditoria inicial, para reemitir seu certificado por mais 5 anos.
+                </p>
+            </div>
+        </section>
+
+        <section id="module-6" class="module-section">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Módulo 6: Uso Correto das Marcas (Foco)</h2>
+            <p class="text-lg text-gray-700 mb-6">
+                Este é um dos pontos de maior atenção na manutenção. O uso das marcas registradas FSC (o logo da árvore, as iniciais FSC, o nome "Forest Stewardship Council") é estritamente controlado pela norma <strong class="text-green-700">FSC-STD-50-001</strong>. Todo uso deve ser submetido para aprovação no portal da APCER.
+            </p>
+
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md mb-8">
+                <h3 class="font-bold text-lg">ALERTA MÁXIMO: APROVAÇÃO OBRIGATÓRIA</h3>
+                <p>Nenhum material (seja um produto impresso ou um post no seu site) pode ser divulgado publicamente com a marca FSC antes de receber a <strong class="underline">aprovação formal do seu organismo certificador (APCER)</strong>. O uso indevido gera NCs graves e pode levar à suspensão.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4 text-center">1. Uso "On-Product" (No Produto)</h3>
+                    <p class="text-gray-600 mb-4 text-center">É o rótulo FSC que vai no material impresso (livro, folder, embalagem) que você produziu como certificado.</p>
+                    
+                    <div class="fake-fsc-label rounded-lg">
+                        <div class="flex items-center justify-center">
+                            <span class="fsc-tree-icon mr-2">🌳</span>
+                            <span class="text-xl font-bold">FSC</span>
+                            <span class="text-2xl font-light mx-1">®</span>
+                        </div>
+                        <p class="text-sm font-semibold mt-2">www.fsc.org</p>
+                        <p class="text-xs mt-1 font-bold">A MARCA DO MANEJO RESPONSÁVEL</p>
+                        <p class="text-lg font-bold mt-2">MISTO</p>
+                        <p class="text-xs">Papel de fontes responsáveis</p>
+                        <p class="text-sm font-semibold mt-2">FSC® CXXXXXX</p>
+                    </div>
+
+                    <h4 class="font-semibold text-gray-700 mt-6 mb-2">Regras Essenciais:</h4>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        <li>Deve ser usado o gerador de rótulos oficial do FSC.</li>
+                        <li>Deve conter o tipo de material (Ex: Misto, Reciclado).</li>
+                        <li>Deve conter o <strong class="text-red-700">seu código CoC</strong> (FSC® CXXXXXX), não o do seu fornecedor de papel.</li>
+                        <li>O rótulo deve estar associado ao produto certificado.</li>
+                        <li><strong class="text-red-700">Requer aprovação da APCER antes da impressão.</strong></li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4 text-center">2. Uso "Off-Product" (Promocional)</h3>
+                    <p class="text-gray-600 mb-4 text-center">É o uso da marca FSC para promover sua gráfica como certificada (ex: site, folder institucional, assinatura de e-mail).</p>
+
+                    <div class="border-2 border-dashed border-gray-400 p-4 rounded-lg bg-gray-50 text-center">
+                        <p class="text-gray-700 mb-3">Exemplo: Banner no site da sua Gráfica</p>
+                        <div class="flex items-center justify-center p-4 bg-green-700 text-white rounded">
+                            <span class="fsc-tree-icon text-white mr-3">🌳</span>
+                            <div>
+                                <p class="font-bold text-lg">Somos certificados FSC®</p>
+                                <p class="text-sm">Pergunte-nos sobre nossos produtos certificados.</p>
+                                <p class="text-xs mt-2">Nosso código: FSC® CXXXXXX</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="font-semibold text-gray-700 mt-6 mb-2">Regras Essenciais:</h4>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        <li>Não pode ser usado o rótulo "On-Product".</li>
+                        <li>Deve ser usado o logo promocional (com seu CoC).</li>
+                        <li>Deve incluir a frase "Pergunte-nos sobre nossos produtos certificados FSC®" (ou similar).</li>
+                        <li>Não pode dar a entender que *todos* os seus produtos são certificados, apenas que você *pode* produzi-los.</li>
+                        <li><strong class="text-red-700">Requer aprovação da APCER antes da publicação.</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.module-nav');
+            const sections = document.querySelectorAll('.module-section');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+
+            function showModule(targetId) {
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(targetId).classList.add('active');
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if(link.dataset.target === targetId) {
+                        link.classList.add('active');
+                    }
+                });
+                
+                if (window.innerWidth < 768) {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                }
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.dataset.target;
+                    showModule(targetId);
+                });
+            });
+
+            mobileMenuBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+            });
+            
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            });
+
+            function setupTabs(tabContainerId, contentClass, activeClass) {
+                const tabs = document.querySelectorAll(`#${tabContainerId} .${activeClass}`);
+                const contents = document.querySelectorAll(`.${contentClass}`);
+                
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        
+                        const targetId = tab.dataset.target;
+                        
+                        contents.forEach(content => {
+                            content.classList.add('hidden');
+                            content.classList.remove('active');
+                        });
+                        
+                        const activeContent = document.getElementById(targetId);
+                        activeContent.classList.remove('hidden');
+                        activeContent.classList.add('active');
+                    });
+                });
+            }
+
+            setupTabs('module-3-tabs', 'module-3-content', 'module-3-tab');
+
+            const btnMenor = document.getElementById('btn-nc-menor');
+            const btnMaior = document.getElementById('btn-nc-maior');
+            const descMenor = document.getElementById('desc-nc-menor');
+            const descMaior = document.getElementById('desc-nc-maior');
+
+            btnMenor.addEventListener('click', () => {
+                descMenor.classList.toggle('hidden');
+                descMaior.classList.add('hidden');
+            });
+            
+            btnMaior.addEventListener('click', () => {
+                descMaior.classList.toggle('hidden');
+                descMenor.classList.add('hidden');
+            });
+
+            function initSistemasChart() {
+                const ctx = document.getElementById('sistemasChart').getContext('2d');
+                if (window.sistemasChartInstance) {
+                    window.sistemasChartInstance.destroy();
+                }
+                window.sistemasChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Transferência', 'Porcentagem', 'Crédito'],
+                        datasets: [
+                            {
+                                label: 'Complexidade de Controle',
+                                data: [2, 3, 4],
+                                backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                                borderColor: 'rgba(239, 68, 68, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Flexibilidade de Produção',
+                                data: [1, 3, 5],
+                                backgroundColor: 'rgba(5, 150, 105, 0.7)',
+                                borderColor: 'rgba(5, 150, 105, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 5,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    title: function(context) {
+                                        return context[0].label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            if (document.getElementById('sistemasChart')) {
+                initSistemasChart();
+            }
+
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.target.id === 'module-4' && mutation.target.classList.contains('active')) {
+                        if (document.getElementById('sistemasChart')) {
+                           initSistemasChart();
+                        }
+                    }
+                });
+            });
+
+            sections.forEach((section) => {
+                observer.observe(section, { attributes: true, attributeFilter: ['class'] });
+            });
+            
+            showModule('module-1');
+        });
+    </script>
+</body>
+</html>
